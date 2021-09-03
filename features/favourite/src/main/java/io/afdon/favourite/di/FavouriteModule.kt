@@ -5,9 +5,9 @@ import dagger.Module
 import io.afdon.favourite.repo.FavouriteRepository
 import io.afdon.favourite.repo.FavouriteRepositoryImpl
 import io.afdon.favourite.usecase.DeleteFavouriteUseCase
-import io.afdon.favourite.usecase.DeleteFavouriteUseCaseImpl
+import io.afdon.favourite.usecase.impl.DeleteFavouriteUseCaseImpl
 import io.afdon.favourite.usecase.GetFavouriteUsersUseCase
-import io.afdon.favourite.usecase.GetFavouriteUsersUseCaseImpl
+import io.afdon.favourite.usecase.impl.GetFavouriteUsersUseCaseImpl
 
 @Module
 interface FavouriteModule {

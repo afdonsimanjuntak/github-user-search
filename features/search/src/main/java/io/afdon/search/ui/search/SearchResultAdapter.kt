@@ -16,11 +16,13 @@ class SearchResultAdapter(
 
     private val listDiffer = AsyncListDiffer(this, object : DiffUtil.ItemCallback<Item>() {
 
-        override fun areItemsTheSame(oldItem: Item, newItem: Item): Boolean =
-            oldItem.isFavourite == newItem.isFavourite
+        override fun areItemsTheSame(oldItem: Item, newItem: Item): Boolean  {
+            return oldItem.user.id == newItem.user.id
+        }
 
-        override fun areContentsTheSame(oldItem: Item, newItem: Item): Boolean =
-            oldItem.isFavourite == newItem.isFavourite
+        override fun areContentsTheSame(oldItem: Item, newItem: Item): Boolean {
+            return oldItem.isFavourite == newItem.isFavourite
+        }
     })
 
     fun submitList(list: List<Item>) = listDiffer.submitList(list)

@@ -1,11 +1,13 @@
 package io.afdon.search.ui.detail
 
 import android.os.Bundle
+import android.util.Log
 import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import io.afdon.core.extension.toast
 import io.afdon.core.viewmodel.SavedStateViewModelFactory
 import io.afdon.search.R
 import io.afdon.search.databinding.FragmentDetailBinding
@@ -27,16 +29,20 @@ class DetailFragment @Inject constructor(
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        (requireActivity() as AppCompatActivity).supportActionBar?.apply {
+            title = "User Detail"
+            setDisplayHomeAsUpEnabled(true)
+        }
         binding = FragmentDetailBinding.bind(view).apply {
+            lifecycleOwner = viewLifecycleOwner
             vm = viewModel
         }
         viewModel.isFavourite.observe(viewLifecycleOwner) {
             val res = if (it) R.drawable.ic_star_yellow else R.drawable.ic_star_outline
             binding?.ivFavourite?.setImageResource(res)
         }
-        (requireActivity() as AppCompatActivity).supportActionBar?.apply {
-            title = "User Detail"
-            setDisplayHomeAsUpEnabled(true)
+        viewModel.errorEvent.observe(viewLifecycleOwner) {
+            it.getContentIfNotHandled()?.let { message -> toast(message) }
         }
     }
 

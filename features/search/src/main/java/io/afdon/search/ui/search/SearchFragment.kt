@@ -1,12 +1,11 @@
 package io.afdon.search.ui.search
 
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import io.afdon.core.extension.toast
 import io.afdon.core.viewmodel.SavedStateViewModelFactory
 import io.afdon.search.R
 import io.afdon.search.databinding.FragmentSearchBinding
@@ -30,12 +29,13 @@ class SearchFragment @Inject constructor(
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding = FragmentSearchBinding.bind(view).apply {
-            vm = viewModel
-        }
         (requireActivity() as AppCompatActivity).supportActionBar?.apply {
             title = "Github User Search"
             setDisplayHomeAsUpEnabled(false)
+        }
+        binding = FragmentSearchBinding.bind(view).apply {
+            lifecycleOwner = viewLifecycleOwner
+            vm = viewModel
         }
         val adapter = SearchResultAdapter(
             viewModel::toggleFavorite, searchNavigation::openDetail
@@ -43,6 +43,21 @@ class SearchFragment @Inject constructor(
         binding?.rvSearchResult?.adapter = adapter
         viewModel.searchResultItems.observe(viewLifecycleOwner) {
             adapter.submitList(it)
+        }
+        viewModel.isLoading.observe(viewLifecycleOwner) {
+            with (binding?.swipeRefreshLayout) {
+                if (it) {
+                    if (this?.isRefreshing == false) isRefreshing = true
+                } else {
+                    this?.isRefreshing = false
+                }
+            }
+        }
+        binding?.swipeRefreshLayout?.setOnRefreshListener {
+            viewModel.searchUser()
+        }
+        viewModel.errorEvent.observe(viewLifecycleOwner) {
+            it.getContentIfNotHandled()?.let { message -> toast(message) }
         }
     }
 
@@ -60,6 +75,7 @@ class SearchFragment @Inject constructor(
             else -> super.onOptionsItemSelected(item)
         }
     }
+
     override fun onDestroyView() {
         super.onDestroyView()
         binding = null

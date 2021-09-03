@@ -5,6 +5,7 @@ import dagger.Module
 import io.afdon.search.repo.SearchRepository
 import io.afdon.search.repo.SearchRepositoryImpl
 import io.afdon.search.usecase.*
+import io.afdon.search.usecase.impl.*
 
 @Module
 interface SearchModule {
@@ -25,5 +26,5 @@ interface SearchModule {
     fun bindGetUserUseCase(useCase: GetUserUseCaseImpl) : GetUserUseCase
 
     @Binds
-    fun bindGetFavouriteUsersUseCase(useCase: GetFavouriteUsersUseCaseImpl) : GetFavouriteUsersUseCase
+    fun bindGetFavouriteUsersUseCase(useCase: GetFavouriteUserIdsUseCaseImpl) : GetFavouriteUserIdsUseCase
 }

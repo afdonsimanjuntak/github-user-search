@@ -6,16 +6,20 @@ import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import io.afdon.core.extension.toast
 import io.afdon.core.viewmodel.SavedStateViewModelFactory
 import io.afdon.favourite.R
 import io.afdon.favourite.databinding.FragmentFavouriteBinding
+import io.afdon.favourite.navigation.FavouriteNavigation
 import javax.inject.Inject
 
 class FavouriteFragment @Inject constructor(
     private val factory: SavedStateViewModelFactory,
+    private val favouriteNavigation: FavouriteNavigation
 ) : Fragment(R.layout.fragment_favourite) {
 
     private val viewModel by viewModels<FavouriteViewModel> {
@@ -28,27 +32,25 @@ class FavouriteFragment @Inject constructor(
         setHasOptionsMenu(true)
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         (requireActivity() as AppCompatActivity).supportActionBar?.apply {
             title = "Favourite Users"
             setDisplayHomeAsUpEnabled(true)
         }
-        return super.onCreateView(inflater, container, savedInstanceState)
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
         binding = FragmentFavouriteBinding.bind(view).apply {
+            lifecycleOwner = viewLifecycleOwner
             vm = viewModel
         }
-        val adapter = FavouriteAdapter(viewModel::deleteFavourite)
+        val adapter = FavouriteAdapter(
+            viewModel::deleteFavourite, favouriteNavigation::openDetail
+        )
         binding?.rvFavouriteUsers?.adapter = adapter
         viewModel.favouriteUsers.observe(viewLifecycleOwner) {
             adapter.submitList(it)
+        }
+        viewModel.errorEvent.observe(viewLifecycleOwner) {
+            it.getContentIfNotHandled()?.let { message -> toast(message) }
         }
         viewModel.getFavourites()
     }

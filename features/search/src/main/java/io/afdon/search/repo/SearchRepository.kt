@@ -8,7 +8,7 @@ interface SearchRepository {
 
     fun searchUsers(q: String, page: Int, perPage: Int) : Flow<RequestResult<List<User>>>
 
-    fun getFavouriteUserIds() : Flow<RequestResult<List<Int>>>
+    fun getFavouriteUserIds() : Flow<RequestResult<Set<Int>>>
 
     fun addFavourite(user: User) : Flow<RequestResult<User>>
 

@@ -9,7 +9,8 @@ import io.afdon.favourite.databinding.ItemFavouriteBinding
 import io.afdon.favourite.model.User
 
 class FavouriteAdapter(
-    private val delete: (Item) -> Unit
+    private val delete: (Item) -> Unit,
+    private val openDetail: (String) -> Unit
 ) : RecyclerView.Adapter<FavouriteAdapter.Holder>() {
 
     private val listDiffer = AsyncListDiffer<Item>(this, object : DiffUtil.ItemCallback<Item>() {
@@ -26,7 +27,7 @@ class FavouriteAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder {
         val binding =
             ItemFavouriteBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return Holder(binding, delete)
+        return Holder(binding, delete, openDetail)
     }
 
     override fun getItemCount(): Int = listDiffer.currentList.size
@@ -36,13 +37,15 @@ class FavouriteAdapter(
 
     class Holder(
         private val binding: ItemFavouriteBinding,
-        private val delete: (Item) -> Unit
+        private val delete: (Item) -> Unit,
+        private val openDetail: (String) -> Unit
     ) :
         RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: Item) {
             binding.item = item
             binding.ibDelete.setOnClickListener { delete(item) }
+            binding.bOpenDetail.setOnClickListener { openDetail(item.user.login) }
         }
     }
 

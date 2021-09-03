@@ -28,15 +28,10 @@ class SearchRepositoryImpl @Inject constructor(
             try {
                 val response = githubApi.searchUsers(q, page, perPage)
                 if (response.isSuccessful) {
-                    val favouriteIds = HashSet<Int>()
                     val list = response.body()?.items?.mapNotNull {
                         searchItemToUserMapper.map(it)
                     }.orEmpty()
-                    if (list.isEmpty()) {
-                        emit(RequestResult.Error("Empty result"))
-                    } else {
-                        emit(RequestResult.Success(list))
-                    }
+                    emit(RequestResult.Success(list))
                 } else {
                     emit(RequestResult.Error("Request failed!"))
                 }
@@ -48,11 +43,10 @@ class SearchRepositoryImpl @Inject constructor(
             }
         }
 
-    override fun getFavouriteUserIds(): Flow<RequestResult<List<Int>>> = flow {
+    override fun getFavouriteUserIds(): Flow<RequestResult<Set<Int>>> = flow {
         emit(RequestResult.Loading(true))
         try {
-            val ids = userDao.getAllIds()
-            emit(RequestResult.Success(ids))
+            emit(RequestResult.Success(userDao.getAllIds().toSet()))
         } catch (e: Exception) {
             e.printStackTrace()
             emit(RequestResult.Error("Error getting data"))

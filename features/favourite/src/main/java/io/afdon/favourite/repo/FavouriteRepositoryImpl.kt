@@ -1,5 +1,6 @@
 package io.afdon.favourite.repo
 
+import android.util.Log
 import io.afdon.data.source.room.dao.UserDao
 import io.afdon.favourite.mapper.RoomUserToDomainUserMapper
 import io.afdon.favourite.mapper.UserToRoomUserMapper
@@ -19,9 +20,7 @@ class FavouriteRepositoryImpl @Inject constructor(
     override fun getFavourites(): Flow<RequestResult<List<User>>> = flow {
         emit(RequestResult.Loading(true))
         try {
-            val users = userDao.getAll().mapNotNull {
-                roomUserToDomainUserMapper.map(it)
-            }
+            val users = userDao.getAll().mapNotNull { roomUserToDomainUserMapper.map(it) }
             emit(RequestResult.Success(users))
         } catch (e: Exception) {
             e.printStackTrace()

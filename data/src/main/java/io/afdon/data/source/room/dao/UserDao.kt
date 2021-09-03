@@ -6,7 +6,7 @@ import io.afdon.data.source.room.entity.UserEntity
 @Dao
 interface UserDao {
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun add(user: UserEntity)
 
     @Query("SELECT * FROM user")

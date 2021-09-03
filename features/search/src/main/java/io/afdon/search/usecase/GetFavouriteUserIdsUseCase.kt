@@ -3,7 +3,7 @@ package io.afdon.search.usecase
 import io.afdon.search.model.RequestResult
 import kotlinx.coroutines.flow.Flow
 
-interface GetFavouriteUsersUseCase {
+interface GetFavouriteUserIdsUseCase {
 
-    fun getFavouriteUserIds() : Flow<RequestResult<List<Int>>>
+    fun getFavouriteUserIds() : Flow<RequestResult<Set<Int>>>
 }

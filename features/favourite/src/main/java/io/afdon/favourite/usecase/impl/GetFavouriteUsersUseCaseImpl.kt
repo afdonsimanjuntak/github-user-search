@@ -1,8 +1,9 @@
-package io.afdon.favourite.usecase
+package io.afdon.favourite.usecase.impl
 
 import io.afdon.favourite.model.RequestResult
 import io.afdon.favourite.model.User
 import io.afdon.favourite.repo.FavouriteRepository
+import io.afdon.favourite.usecase.GetFavouriteUsersUseCase
 import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
 
