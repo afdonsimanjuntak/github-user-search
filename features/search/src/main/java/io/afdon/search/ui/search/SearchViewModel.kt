@@ -48,7 +48,7 @@ class SearchViewModel @AssistedInject constructor(
     private var page = 1
     private val perPage = 100
 
-    private val _searchResultItems = MutableLiveData<List<SearchResultAdapter.Item>>()
+    private val _searchResultItems = MutableLiveData<List<SearchResultAdapter.Item>>(arrayListOf())
     val searchResultItems: LiveData<List<SearchResultAdapter.Item>> = _searchResultItems
 
     private var searchUsersJob: Job? = null

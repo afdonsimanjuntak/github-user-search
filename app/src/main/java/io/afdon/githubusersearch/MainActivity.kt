@@ -22,4 +22,12 @@ class MainActivity : AppCompatActivity() {
             addToBackStack(SearchFragment::class.simpleName)
         }
     }
+
+    override fun onBackPressed() {
+        if (supportFragmentManager.backStackEntryCount <= 1) {
+            moveTaskToBack(true)
+        } else {
+            super.onBackPressed()
+        }
+    }
 }

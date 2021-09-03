@@ -1,6 +1,7 @@
 package io.afdon.search.ui.search
 
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
@@ -59,6 +60,7 @@ class SearchFragment @Inject constructor(
         viewModel.errorEvent.observe(viewLifecycleOwner) {
             it.getContentIfNotHandled()?.let { message -> toast(message) }
         }
+        viewModel.getFavouriteUserIds()
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
