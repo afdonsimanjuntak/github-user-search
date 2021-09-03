@@ -1,4 +1,5 @@
 # Android Showcase
+Github User Search
 
 - Clean architecture (domain, data, presentation)
 - Modular (feature based modules)
