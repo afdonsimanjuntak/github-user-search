@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+        <variable
+            name="vm"
+            type="io.afdon.search.ui.detail.DetailViewModel" />
+    </data>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:id="@+id/ivAvatar"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="16dp"
+                circleImage="@{vm.user.avatarUrl}"
+                tools:background="@color/grey"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"/>
+
+            <TextView
+                android:id="@+id/tvLogin"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                tools:text="defunct"
+                android:text="@{vm.user.login}"
+                app:layout_constraintStart_toEndOf="@id/ivAvatar"
+                app:layout_constraintEnd_toStartOf="@id/ivFavourite"
+                app:layout_constraintTop_toTopOf="@id/ivAvatar"
+                app:layout_constraintBottom_toBottomOf="@id/ivAvatar"/>
+
+            <ImageView
+                android:id="@+id/ivFavourite"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_marginEnd="16dp"
+                tools:srcCompat="@drawable/ic_star_yellow"
+                android:background="?selectableItemBackground"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintBottom_toTopOf="@id/vSeparator"/>
+
+            <View
+                android:id="@+id/vSeparator"
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_marginTop="16dp"
+                android:background="@color/grey"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/ivAvatar"/>
+
+            <TextView
+                android:id="@+id/tvLabelHtmlUrl"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="24dp"
+                android:layout_marginEnd="16dp"
+                android:text="Html Url"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/vSeparator"/>
+
+            <TextView
+                android:id="@+id/tvHtmlUrl"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                tools:text="https://www.example.com/user/name"
+                android:text="@{vm.user.htmlUrl}"
+                app:layout_constraintStart_toStartOf="@id/tvLabelHtmlUrl"
+                app:layout_constraintEnd_toEndOf="@id/tvLabelHtmlUrl"
+                app:layout_constraintTop_toBottomOf="@id/tvLabelHtmlUrl"/>
+
+            <TextView
+                android:id="@+id/tvLabelReposUrl"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="24dp"
+                android:layout_marginEnd="16dp"
+                android:text="Repos Url"
+                android:textStyle="bold"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tvHtmlUrl"/>
+
+            <TextView
+                android:id="@+id/tvReposUrl"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                tools:text="https://www.example.com/user/name"
+                android:text="@{vm.user.reposUrl}"
+                app:layout_constraintStart_toStartOf="@id/tvLabelReposUrl"
+                app:layout_constraintEnd_toEndOf="@id/tvLabelReposUrl"
+                app:layout_constraintTop_toBottomOf="@id/tvLabelReposUrl"/>
+
+            <Button
+                android:id="@+id/bToggleFavourite"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                tools:text="Add To Favourite"
+                android:onClick="@{() -> vm.toggleFavourite()}"
+                android:text="@{vm.buttonText}"
+                app:layout_constraintStart_toStartOf="@id/tvLabelReposUrl"
+                app:layout_constraintEnd_toEndOf="@id/tvLabelReposUrl"
+                app:layout_constraintTop_toBottomOf="@id/tvReposUrl"/>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </ScrollView>
+
+</layout>
