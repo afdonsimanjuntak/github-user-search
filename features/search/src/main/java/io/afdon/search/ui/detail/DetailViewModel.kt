@@ -24,7 +24,7 @@ class DetailViewModel @AssistedInject constructor(
     private val getUserUseCase: GetUserUseCase,
     private val addFavouriteUseCase: AddFavouriteUseCase,
     private val deleteFavouriteUseCase: DeleteFavouriteUseCase
-): ViewModel() {
+) : ViewModel() {
 
     @AssistedFactory
     interface Factory : AssistedViewModelFactory<DetailViewModel>
@@ -88,7 +88,8 @@ class DetailViewModel @AssistedInject constructor(
                     result.collect {
                         when (it) {
                             is RequestResult.Loading -> {
-                                _progressVisibility.value = if (it.isLoading) View.VISIBLE else View.GONE
+                                _progressVisibility.value =
+                                    if (it.isLoading) View.VISIBLE else View.GONE
                                 if (!it.isLoading) toggleUserJob.cancelIfActive()
                             }
                             is RequestResult.Error -> {
@@ -118,13 +119,17 @@ class DetailViewModel @AssistedInject constructor(
                     }
                     is RequestResult.Success -> {
                         _user.value?.let { u ->
-                            _isFavourite.value = it.data.contains(u.id)
+                            setFavouriteState(it.data, u.id)
                             setButtonText()
                         }
                     }
                 }
             }
         }
+    }
+
+    private fun setFavouriteState(set: Set<Int>, id: Int) {
+        _isFavourite.value = set.contains(id)
     }
 
     private fun setButtonText() {

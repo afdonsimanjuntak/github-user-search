@@ -29,8 +29,8 @@
             android:textColor="#333"
             android:importantForAutofill="no"
             android:inputType="text"
-            android:text="@={vm.query}"
-            android:onTextChanged="@{() -> vm.searchUser()}"
+            android:text="@={vm.queryEditTextValue}"
+            android:onTextChanged="@{() -> vm.newSearch()}"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"/>

@@ -1,5 +1,6 @@
 package io.afdon.search.ui.search
 
+import android.util.Log
 import android.view.View
 import androidx.lifecycle.*
 import dagger.assisted.Assisted
@@ -31,67 +32,93 @@ class SearchViewModel @AssistedInject constructor(
 
     companion object {
         private const val SEARCH_DELAY = 500L
+        private const val PER_PAGE = 30
     }
 
-    val query = savedStateHandle.getLiveData<String>("query")
-    private lateinit var prevQuery : String
+    private val pages = mutableMapOf<Int, List<SearchResultAdapter.Item>>()
+    private val _searchResultItems = MutableLiveData<List<SearchResultAdapter.Item>>(arrayListOf())
+    val searchResultItems: LiveData<List<SearchResultAdapter.Item>> = _searchResultItems
+
+    val queryEditTextValue = savedStateHandle.getLiveData<String>("query")
 
     private val _progressVisibility = MutableLiveData(View.GONE)
     val progressVisibility: LiveData<Int> = _progressVisibility
 
-    private val _isLoading = MutableLiveData(false)
-    val isLoading: LiveData<Boolean> = _isLoading
+    private val _isRefreshing = MutableLiveData(false)
+    val isRefreshing: LiveData<Boolean> = _isRefreshing
 
     private val _errorEvent = MutableLiveData<Event<String>>()
     val errorEvent: LiveData<Event<String>> = _errorEvent
 
-    private var page = 1
-    private val perPage = 100
-
-    private val _searchResultItems = MutableLiveData<List<SearchResultAdapter.Item>>(arrayListOf())
-    val searchResultItems: LiveData<List<SearchResultAdapter.Item>> = _searchResultItems
-
-    private var searchUsersJob: Job? = null
+    private lateinit var currentQuery : String
+    private var currentPage = 0
+    private var searchUsersJobMap = mutableMapOf<Int, Job?>()
     private var toggleFavouriteJob: Job? = null
     private var getFavouriteUserIdsJob : Job? = null
+    private var hasMore = true
+    private var lastLoadSuccesThreshold = 0
+    private var currentLoadThreshold = 0
 
     init {
-        query.value?.let { if (it.length >= 3) searchUser() }
+        queryEditTextValue.value?.let { if (it.length >= 3) newSearch() }
     }
 
-    fun searchUser() {
-        query.value?.let { currentQuery ->
-            prevQuery = currentQuery
-            if (currentQuery.length < 3) {
-                _isLoading.value = false
-                return@let
-            }
-            searchUsersJob.cancelIfActive()
-            searchUsersJob = viewModelScope.launch {
-                delay(SEARCH_DELAY)
-                if (currentQuery == prevQuery) {
-                    searchUsersUseCase.searchUsers(currentQuery, page, perPage).collect { result ->
-                        when (result) {
-                            is RequestResult.Loading -> {
-                                _isLoading.value = result.isLoading
-                                if (!result.isLoading) searchUsersJob.cancelIfActive()
-                            }
-                            is RequestResult.Error -> {
-                                _errorEvent.value = Event(result.error)
-                            }
-                            is RequestResult.Success -> {
-                                _searchResultItems.value = result.data.map {
-                                    SearchResultAdapter.Item(it, false)
-                                }
-                                getFavouriteUserIds()
-                            }
-                        }
+    fun newSearch() {
+        queryEditTextValue.value?.let { newQuery ->
+            currentQuery = newQuery
+            if (newQuery.length < 3) {
+                _isRefreshing.value = false
+            } else {
+                currentPage = 1
+                searchUsersJobMap[currentPage].cancelIfActive()
+                searchUsersJobMap[currentPage] = viewModelScope.launch {
+                    delay(SEARCH_DELAY)
+                    if (newQuery == currentQuery) {
+                        fetchUsers(currentQuery, currentPage, PER_PAGE, searchUsersJobMap[currentPage])
+                    } else {
+                        _isRefreshing.value = false
                     }
-                } else {
-                    _isLoading.value = false
                 }
             }
-        } ?: run { _isLoading.value = false }
+        } ?: run { _isRefreshing.value = false }
+    }
+
+    fun loadNextPage(loadThreshold: Int) {
+        if (!hasMore || currentLoadThreshold == loadThreshold) return
+        currentLoadThreshold = loadThreshold
+        currentPage++
+        searchUsersJobMap[currentPage].cancelIfActive()
+        searchUsersJobMap[currentPage] = viewModelScope.launch {
+            fetchUsers(currentQuery, currentPage, PER_PAGE, searchUsersJobMap[currentPage])
+        }
+    }
+
+    private suspend fun fetchUsers(query: String, page: Int, perPage: Int, job: Job?) {
+        searchUsersUseCase.searchUsers(query, page, perPage).collect { result ->
+            when (result) {
+                is RequestResult.Loading -> {
+                    _isRefreshing.value = result.isLoading
+                    if (!result.isLoading) job.cancelIfActive()
+                }
+                is RequestResult.Error -> {
+                    lastLoadSuccesThreshold = 0
+                    _errorEvent.value = Event(result.error)
+                }
+                is RequestResult.Success -> {
+                    lastLoadSuccesThreshold = currentLoadThreshold
+                    if (page == 0) pages.clear()
+                    val newItems = result.data.map { SearchResultAdapter.Item(it, false) }
+                    if (newItems.isEmpty()) {
+                        hasMore = false
+                    } else {
+                        hasMore = true
+                        pages[page] = newItems
+                        populateItems()
+                        getFavouriteUserIds()
+                    }
+                }
+            }
+        }
     }
 
     fun toggleFavorite(item: SearchResultAdapter.Item) {
@@ -117,6 +144,16 @@ class SearchViewModel @AssistedInject constructor(
                 }
             }
         }
+    }
+
+    @Suppress("ReplaceManualRangeWithIndicesCalls")
+    private fun populateItems() {
+        val newItems = arrayListOf<SearchResultAdapter.Item>()
+        for (i in 1..currentPage) {
+            pages[i]?.let { newItems.addAll(it) }
+        }
+        Log.d("---------------------", "populateItems: size: ${newItems.size}")
+        _searchResultItems.value = newItems
     }
 
     fun getFavouriteUserIds() {

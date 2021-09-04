@@ -1,11 +1,12 @@
 package io.afdon.search.ui.search
 
 import android.os.Bundle
-import android.util.Log
 import android.view.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import io.afdon.core.extension.toast
 import io.afdon.core.viewmodel.SavedStateViewModelFactory
 import io.afdon.search.R
@@ -38,14 +39,11 @@ class SearchFragment @Inject constructor(
             lifecycleOwner = viewLifecycleOwner
             vm = viewModel
         }
-        val adapter = SearchResultAdapter(
-            viewModel::toggleFavorite, searchNavigation::openDetail
-        )
+        val adapter = SearchResultAdapter(viewModel::toggleFavorite, searchNavigation::openDetail)
+        binding?.swipeRefreshLayout?.setOnRefreshListener { viewModel.newSearch() }
         binding?.rvSearchResult?.adapter = adapter
-        viewModel.searchResultItems.observe(viewLifecycleOwner) {
-            adapter.submitList(it)
-        }
-        viewModel.isLoading.observe(viewLifecycleOwner) {
+        viewModel.searchResultItems.observe(viewLifecycleOwner) { adapter.submitList(it) }
+        viewModel.isRefreshing.observe(viewLifecycleOwner) {
             with (binding?.swipeRefreshLayout) {
                 if (it) {
                     if (this?.isRefreshing == false) isRefreshing = true
@@ -54,17 +52,34 @@ class SearchFragment @Inject constructor(
                 }
             }
         }
-        binding?.swipeRefreshLayout?.setOnRefreshListener {
-            viewModel.searchUser()
-        }
         viewModel.errorEvent.observe(viewLifecycleOwner) {
             it.getContentIfNotHandled()?.let { message -> toast(message) }
         }
         viewModel.getFavouriteUserIds()
+        setScrollListener()
+    }
+
+    private fun setScrollListener() {
+        binding?.rvSearchResult?.let { rv ->
+            val llm = rv.layoutManager
+            if (llm is LinearLayoutManager) {
+                rv.adapter?.let { rvAdapter ->
+                    rv.addOnScrollListener(object: RecyclerView.OnScrollListener() {
+                        override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                            super.onScrolled(recyclerView, dx, dy)
+                            val threshold = rvAdapter.itemCount - 10
+                            if (llm.findLastVisibleItemPosition() == threshold) {
+                                viewModel.loadNextPage(threshold)
+                            }
+                        }
+                    })
+                }
+            }
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        inflater.inflate(R.menu.search_menu, menu)
+        inflater.inflate(R.menu.page_search, menu)
         super.onCreateOptionsMenu(menu, inflater)
     }
 

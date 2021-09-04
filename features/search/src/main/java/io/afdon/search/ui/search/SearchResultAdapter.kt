@@ -16,13 +16,11 @@ class SearchResultAdapter(
 
     private val listDiffer = AsyncListDiffer(this, object : DiffUtil.ItemCallback<Item>() {
 
-        override fun areItemsTheSame(oldItem: Item, newItem: Item): Boolean  {
-            return oldItem.user.id == newItem.user.id
-        }
+        override fun areItemsTheSame(oldItem: Item, newItem: Item): Boolean =
+            oldItem.user.id == newItem.user.id
 
-        override fun areContentsTheSame(oldItem: Item, newItem: Item): Boolean {
-            return oldItem.isFavourite == newItem.isFavourite
-        }
+        override fun areContentsTheSame(oldItem: Item, newItem: Item): Boolean =
+            oldItem.isFavourite == newItem.isFavourite
     })
 
     fun submitList(list: List<Item>) = listDiffer.submitList(list)
@@ -43,8 +41,7 @@ class SearchResultAdapter(
         private val binding: ItemSearchResultBinding,
         private val toggleFavourite: (Item) -> Unit,
         private val openDetail: (String) -> Unit
-    ) :
-        RecyclerView.ViewHolder(binding.root) {
+    ) : RecyclerView.ViewHolder(binding.root) {
 
         fun bind(item: Item) {
             binding.item = item

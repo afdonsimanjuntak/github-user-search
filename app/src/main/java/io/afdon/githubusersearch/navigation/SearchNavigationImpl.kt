@@ -1,7 +1,6 @@
 package io.afdon.githubusersearch.navigation
 
 import android.os.Bundle
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.commit
 import io.afdon.favourite.ui.FavouriteFragment
