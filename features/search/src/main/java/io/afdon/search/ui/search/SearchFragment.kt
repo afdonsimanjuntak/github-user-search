@@ -22,6 +22,7 @@ class SearchFragment @Inject constructor(
     private val viewModel by viewModels<SearchViewModel> {
         factory.create(this@SearchFragment, arguments)
     }
+    private lateinit var adapter : SearchResultAdapter
     private var binding: FragmentSearchBinding? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,17 +32,37 @@ class SearchFragment @Inject constructor(
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        initToolbar()
+        initAdapter()
+        setBinding(view)
+        observeViewModel()
+        viewModel.updateItems()
+        setScrollListener()
+    }
+
+    private fun initToolbar() {
         (requireActivity() as AppCompatActivity).supportActionBar?.apply {
             title = "Github User Search"
             setDisplayHomeAsUpEnabled(false)
         }
-        binding = FragmentSearchBinding.bind(view).apply {
+    }
+
+    private fun initAdapter() {
+        adapter = SearchResultAdapter(
+            viewModel::toggleFavorite, searchNavigation::openDetail, viewModel::onButtonLoadMore
+        )
+    }
+
+    private fun setBinding(v: View) {
+        binding = FragmentSearchBinding.bind(v).apply {
             lifecycleOwner = viewLifecycleOwner
             vm = viewModel
+            swipeRefreshLayout.setOnRefreshListener { viewModel.newSearch() }
+            rvSearchResult.adapter = adapter
         }
-        val adapter = SearchResultAdapter(viewModel::toggleFavorite, searchNavigation::openDetail)
-        binding?.swipeRefreshLayout?.setOnRefreshListener { viewModel.newSearch() }
-        binding?.rvSearchResult?.adapter = adapter
+    }
+
+    private fun observeViewModel() {
         viewModel.searchResultItems.observe(viewLifecycleOwner) { adapter.submitList(it) }
         viewModel.isRefreshing.observe(viewLifecycleOwner) {
             with (binding?.swipeRefreshLayout) {
@@ -55,8 +76,6 @@ class SearchFragment @Inject constructor(
         viewModel.errorEvent.observe(viewLifecycleOwner) {
             it.getContentIfNotHandled()?.let { message -> toast(message) }
         }
-        viewModel.getFavouriteUserIds()
-        setScrollListener()
     }
 
     private fun setScrollListener() {
@@ -69,7 +88,7 @@ class SearchFragment @Inject constructor(
                             super.onScrolled(recyclerView, dx, dy)
                             val threshold = rvAdapter.itemCount - 10
                             if (llm.findLastVisibleItemPosition() == threshold) {
-                                viewModel.loadNextPage(threshold)
+                                viewModel.onScrollLoadMore()
                             }
                         }
                     })

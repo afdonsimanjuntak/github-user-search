@@ -8,6 +8,8 @@
         <entry key="..\:/Users/USER/AndroidStudioProjects/GithubUserSearch/core/src/main/res/drawable/ic_star_outline.xml" value="0.375" />
         <entry key="..\:/Users/USER/AndroidStudioProjects/GithubUserSearch/core/src/main/res/drawable/ic_star_white.xml" value="0.37037037037037035" />
         <entry key="..\:/Users/USER/AndroidStudioProjects/GithubUserSearch/core/src/main/res/drawable/ic_star_yellow.xml" value="0.22135416666666666" />
+        <entry key="..\:/Users/USER/AndroidStudioProjects/GithubUserSearch/core/src/main/res/layout/item_recyclerview_load_more.xml" value="0.36666666666666664" />
+        <entry key="..\:/Users/USER/AndroidStudioProjects/GithubUserSearch/core/src/main/res/layout/item_recyclerview_loading.xml" value="0.36666666666666664" />
         <entry key="..\:/Users/USER/AndroidStudioProjects/GithubUserSearch/features/favourite/src/main/res/layout/fragment_favourite.xml" value="0.36666666666666664" />
         <entry key="..\:/Users/USER/AndroidStudioProjects/GithubUserSearch/features/favourite/src/main/res/layout/item_favourite.xml" value="0.36666666666666664" />
         <entry key="..\:/Users/USER/AndroidStudioProjects/GithubUserSearch/features/search/src/main/res/drawable/edit_text_bg.xml" value="0.375" />

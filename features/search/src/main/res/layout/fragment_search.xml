@@ -29,8 +29,8 @@
             android:textColor="#333"
             android:importantForAutofill="no"
             android:inputType="text"
-            android:text="@={vm.queryEditTextValue}"
-            android:onTextChanged="@{() -> vm.newSearch()}"
+            android:text="@={vm.queryLiveData}"
+            android:afterTextChanged="@{() -> vm.newSearch()}"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"/>

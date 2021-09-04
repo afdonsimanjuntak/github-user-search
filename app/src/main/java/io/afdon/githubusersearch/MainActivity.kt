@@ -18,7 +18,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         supportFragmentManager.commit {
-            add(android.R.id.content, SearchFragment::class.java, null)
+            replace(android.R.id.content, SearchFragment::class.java, null)
             addToBackStack(SearchFragment::class.simpleName)
         }
     }
