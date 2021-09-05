@@ -36,16 +36,16 @@ class SearchViewModel @AssistedInject constructor(
         private const val PER_PAGE = 30
     }
 
+    val queryLiveData = savedStateHandle.getLiveData<String>("query")
+
     private val _searchResultItems = MutableLiveData<List<SearchResultAdapter.Item>>(arrayListOf())
     val searchResultItems: LiveData<List<SearchResultAdapter.Item>> = _searchResultItems
-
-    val queryLiveData = savedStateHandle.getLiveData<String>("query")
 
     private val _progressVisibility = MutableLiveData(View.GONE)
     val progressVisibility: LiveData<Int> = _progressVisibility
 
-    private val _isRefreshing = MutableLiveData(false)
-    val isRefreshing: LiveData<Boolean> = _isRefreshing
+    private val _isSwipeRefreshing = MutableLiveData(false)
+    val isSwipeRefreshing: LiveData<Boolean> = _isSwipeRefreshing
 
     private val _errorEvent = MutableLiveData<Event<String>>()
     val errorEvent: LiveData<Event<String>> = _errorEvent
@@ -69,12 +69,16 @@ class SearchViewModel @AssistedInject constructor(
                 searchUsersJob.cancelIfActive()
                 searchUsersJob = viewModelScope.launch {
                     delay(SEARCH_DELAY)
-                    fetchUsers(newQuery, FIRST_PAGE)
+                    if (newQuery == queryLiveData.value) {
+                        fetchUsers(newQuery, FIRST_PAGE)
+                    } else {
+                        _isSwipeRefreshing.value = false
+                    }
                 }
             } else {
-                _isRefreshing.value = false
+                _isSwipeRefreshing.value = false
             }
-        } ?: run { _isRefreshing.value = false }
+        } ?: run { _isSwipeRefreshing.value = false }
     }
 
     fun onScrollLoadMore() {
@@ -97,20 +101,16 @@ class SearchViewModel @AssistedInject constructor(
     }
 
     private suspend fun fetchUsers(query: String, page: Int) {
-        if (query != queryLiveData.value) {
-            _isRefreshing.value = false
-            return
-        }
         searchUsersUseCase.searchUsers(query, page, PER_PAGE).collect { result ->
             when (result) {
                 is RequestResult.Loading -> {
-                    _isRefreshing.value = result.isLoading
+                    _isSwipeRefreshing.value = result.isLoading
                     if (result.isLoading) addLoadingFooter()
                     if (!result.isLoading) searchUsersJob.cancelIfActive()
                 }
                 is RequestResult.Error -> {
                     addLoadMoreFooter()
-                    _errorEvent.value = Event(result.error)
+                    _errorEvent.value = Event(result.message)
                 }
                 is RequestResult.Success -> {
                     currentPage = page
@@ -139,7 +139,7 @@ class SearchViewModel @AssistedInject constructor(
                         if (!it.isLoading) toggleFavouriteJob.cancelIfActive()
                     }
                     is RequestResult.Error -> {
-                        _errorEvent.value = Event(it.error)
+                        _errorEvent.value = Event(it.message)
                     }
                     is RequestResult.Success -> {
                         updateItems()
@@ -159,7 +159,7 @@ class SearchViewModel @AssistedInject constructor(
                         if (!it.isLoading) getFavouriteUserIdsJob.cancelIfActive()
                     }
                     is RequestResult.Error -> {
-                        _errorEvent.value = Event(it.error)
+                        _errorEvent.value = Event(it.message)
                     }
                     is RequestResult.Success -> {
                         _searchResultItems.value = populateItems().map { item ->

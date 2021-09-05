@@ -64,7 +64,7 @@ class SearchFragment @Inject constructor(
 
     private fun observeViewModel() {
         viewModel.searchResultItems.observe(viewLifecycleOwner) { adapter.submitList(it) }
-        viewModel.isRefreshing.observe(viewLifecycleOwner) {
+        viewModel.isSwipeRefreshing.observe(viewLifecycleOwner) {
             with (binding?.swipeRefreshLayout) {
                 if (it) {
                     if (this?.isRefreshing == false) isRefreshing = true

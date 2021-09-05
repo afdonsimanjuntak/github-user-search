@@ -62,7 +62,7 @@ class DetailViewModel @AssistedInject constructor(
                         if (!it.isLoading) getUserJob.cancelIfActive()
                     }
                     is RequestResult.Error -> {
-                        _errorEvent.value = Event(it.error)
+                        _errorEvent.value = Event(it.message)
                     }
                     is RequestResult.Success -> {
                         it.data.let { u ->
@@ -93,7 +93,7 @@ class DetailViewModel @AssistedInject constructor(
                                 if (!it.isLoading) toggleUserJob.cancelIfActive()
                             }
                             is RequestResult.Error -> {
-                                _errorEvent.value = Event(it.error)
+                                _errorEvent.value = Event(it.message)
                             }
                             is RequestResult.Success -> {
                                 getFavouriteIds()
@@ -115,7 +115,7 @@ class DetailViewModel @AssistedInject constructor(
                         if (!it.isLoading) getFavouriteIdsJob.cancelIfActive()
                     }
                     is RequestResult.Error -> {
-                        _errorEvent.value = Event(it.error)
+                        _errorEvent.value = Event(it.message)
                     }
                     is RequestResult.Success -> {
                         _user.value?.let { u ->
