@@ -22,7 +22,7 @@ class SearchFragment @Inject constructor(
     private val viewModel by viewModels<SearchViewModel> {
         factory.create(this@SearchFragment, arguments)
     }
-    private lateinit var adapter : SearchResultAdapter
+    private lateinit var adapter: SearchResultAdapter
     private var binding: FragmentSearchBinding? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -63,9 +63,15 @@ class SearchFragment @Inject constructor(
     }
 
     private fun observeViewModel() {
-        viewModel.searchResultItems.observe(viewLifecycleOwner) { adapter.submitList(it) }
+        viewModel.searchResultItems.observe(viewLifecycleOwner) {
+            adapter.submitList(it) {
+                if (it.size <= SearchViewModel.PER_PAGE) {
+                    binding?.rvSearchResult?.scrollToPosition(0)
+                }
+            }
+        }
         viewModel.isSwipeRefreshing.observe(viewLifecycleOwner) {
-            with (binding?.swipeRefreshLayout) {
+            with(binding?.swipeRefreshLayout) {
                 if (it) {
                     if (this?.isRefreshing == false) isRefreshing = true
                 } else {
@@ -83,7 +89,7 @@ class SearchFragment @Inject constructor(
             val llm = rv.layoutManager
             if (llm is LinearLayoutManager) {
                 rv.adapter?.let { rvAdapter ->
-                    rv.addOnScrollListener(object: RecyclerView.OnScrollListener() {
+                    rv.addOnScrollListener(object : RecyclerView.OnScrollListener() {
                         override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                             super.onScrolled(recyclerView, dx, dy)
                             val threshold = rvAdapter.itemCount - 10

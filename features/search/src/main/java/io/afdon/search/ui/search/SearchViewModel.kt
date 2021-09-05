@@ -1,5 +1,6 @@
 package io.afdon.search.ui.search
 
+import android.util.Log
 import android.view.View
 import androidx.lifecycle.*
 import dagger.assisted.Assisted
@@ -33,7 +34,7 @@ class SearchViewModel @AssistedInject constructor(
     companion object {
         private const val FIRST_PAGE = 1
         private const val SEARCH_DELAY = 500L
-        private const val PER_PAGE = 30
+        const val PER_PAGE = 30
     }
 
     val queryLiveData = savedStateHandle.getLiveData<String>("query")
@@ -53,7 +54,6 @@ class SearchViewModel @AssistedInject constructor(
     private val pages = mutableMapOf<Int, List<SearchResultAdapter.Item>>()
     private var currentPage = 0
     private var lastTriedPage = 0
-    private var hasMore = true
 
     private var searchUsersJob: Job? = null
     private var toggleFavouriteJob: Job? = null
@@ -84,7 +84,6 @@ class SearchViewModel @AssistedInject constructor(
     fun onScrollLoadMore() {
         val page = currentPage + 1
         if (page == lastTriedPage) return
-        lastTriedPage = page
         loadNextPage(page)
     }
 
@@ -101,6 +100,7 @@ class SearchViewModel @AssistedInject constructor(
     }
 
     private suspend fun fetchUsers(query: String, page: Int) {
+        lastTriedPage = page
         searchUsersUseCase.searchUsers(query, page, PER_PAGE).collect { result ->
             when (result) {
                 is RequestResult.Loading -> {
@@ -116,7 +116,6 @@ class SearchViewModel @AssistedInject constructor(
                     currentPage = page
                     if (page == FIRST_PAGE) pages.clear()
                     val newItems = result.data.map { SearchResultAdapter.Item(it, false) }
-                    hasMore = result.hasMore
                     pages[page] = newItems
                     updateItems()
                 }
@@ -161,6 +160,7 @@ class SearchViewModel @AssistedInject constructor(
                         _errorEvent.value = Event(it.message)
                     }
                     is RequestResult.Success -> {
+                        if (pages.size == 1) _searchResultItems.value = arrayListOf()
                         _searchResultItems.value = populateItems().map { item ->
                             SearchResultAdapter.Item(item.user, it.data.contains(item.user?.id))
                         }
@@ -175,6 +175,7 @@ class SearchViewModel @AssistedInject constructor(
         for (i in FIRST_PAGE..currentPage) {
             pages[i]?.let { newItems.addAll(it) }
         }
+        Log.d("---------------------", "populateItems: size ${newItems.size}")
         return newItems
     }
 

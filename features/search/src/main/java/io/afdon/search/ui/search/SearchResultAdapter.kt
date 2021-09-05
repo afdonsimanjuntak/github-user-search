@@ -32,7 +32,9 @@ class SearchResultAdapter(
         return listDiffer.currentList[position].type
     }
 
-    fun submitList(list: List<Item>) = listDiffer.submitList(list)
+    fun submitList(list: List<Item>?, commitCallback: Runnable? = null) {
+        listDiffer.submitList(list, commitCallback)
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {
