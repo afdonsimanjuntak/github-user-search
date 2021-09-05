@@ -127,12 +127,11 @@ class SearchViewModel @AssistedInject constructor(
     fun toggleFavorite(item: SearchResultAdapter.Item) {
         toggleFavouriteJob.cancelIfActive()
         toggleFavouriteJob = viewModelScope.launch {
-            val result = if (item.isFavourite) {
+            if (item.isFavourite) {
                 item.user?.let { deleteFavouriteUseCase.delete(it) }
             } else {
                 item.user?.let { addFavouriteUseCase.add(it) }
-            }
-            result?.collect {
+            }?.collect {
                 when (it) {
                     is RequestResult.Loading -> {
                         _progressVisibility.value = if (it.isLoading) View.VISIBLE else View.GONE

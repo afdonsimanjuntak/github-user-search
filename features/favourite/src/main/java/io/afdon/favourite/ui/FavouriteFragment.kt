@@ -1,12 +1,8 @@
 package io.afdon.favourite.ui
 
 import android.os.Bundle
-import android.util.Log
-import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
-import android.view.ViewGroup
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -26,6 +22,7 @@ class FavouriteFragment @Inject constructor(
         factory.create(this@FavouriteFragment)
     }
     private var binding: FragmentFavouriteBinding? = null
+    private lateinit var adapter: FavouriteAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,25 +31,41 @@ class FavouriteFragment @Inject constructor(
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        initToolbar()
+        initAdapter()
+        setBinding(view)
+        observeViewModel()
+        viewModel.getFavourites()
+    }
+
+    private fun initToolbar() {
         (requireActivity() as AppCompatActivity).supportActionBar?.apply {
             title = "Favourite Users"
             setDisplayHomeAsUpEnabled(true)
         }
-        binding = FragmentFavouriteBinding.bind(view).apply {
-            lifecycleOwner = viewLifecycleOwner
-            vm = viewModel
-        }
-        val adapter = FavouriteAdapter(
+    }
+
+    private fun initAdapter() {
+        adapter = FavouriteAdapter(
             viewModel::deleteFavourite, favouriteNavigation::openDetail
         )
-        binding?.rvFavouriteUsers?.adapter = adapter
+    }
+
+    private fun setBinding(v: View) {
+        binding = FragmentFavouriteBinding.bind(v).apply {
+            lifecycleOwner = viewLifecycleOwner
+            vm = viewModel
+            rvFavouriteUsers.adapter = adapter
+        }
+    }
+
+    private fun observeViewModel() {
         viewModel.favouriteUsers.observe(viewLifecycleOwner) {
             adapter.submitList(it)
         }
         viewModel.errorEvent.observe(viewLifecycleOwner) {
             it.getContentIfNotHandled()?.let { message -> toast(message) }
         }
-        viewModel.getFavourites()
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

@@ -52,9 +52,7 @@ class FavouriteViewModel @AssistedInject constructor(
                         _errorEvent.value = Event(it.error)
                     }
                     is RequestResult.Success -> {
-                        _favouriteUsers.value = it.data.map { user ->
-                            FavouriteAdapter.Item(user)
-                        }
+                        _favouriteUsers.value = it.data.map { user -> FavouriteAdapter.Item(user) }
                     }
                 }
             }

@@ -1,7 +1,6 @@
 package io.afdon.search.ui.detail
 
 import android.os.Bundle
-import android.util.Log
 import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -29,14 +28,26 @@ class DetailFragment @Inject constructor(
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        initToolbar()
+        setBinding(view)
+        observeViewModel()
+    }
+
+    private fun initToolbar() {
         (requireActivity() as AppCompatActivity).supportActionBar?.apply {
             title = "User Detail"
             setDisplayHomeAsUpEnabled(true)
         }
-        binding = FragmentDetailBinding.bind(view).apply {
+    }
+
+    private fun setBinding(v: View) {
+        binding = FragmentDetailBinding.bind(v).apply {
             lifecycleOwner = viewLifecycleOwner
             vm = viewModel
         }
+    }
+
+    private fun observeViewModel() {
         viewModel.isFavourite.observe(viewLifecycleOwner) {
             val res = if (it) R.drawable.ic_star_yellow else R.drawable.ic_star_outline
             binding?.ivFavourite?.setImageResource(res)

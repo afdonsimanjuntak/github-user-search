@@ -1,6 +1,5 @@
 package io.afdon.search.ui.search
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.AsyncListDiffer
@@ -13,7 +12,6 @@ import io.afdon.core.viewholder.LoadingViewHolder
 import io.afdon.search.R
 import io.afdon.search.databinding.ItemSearchResultBinding
 import io.afdon.search.model.User
-import java.lang.IllegalArgumentException
 
 class SearchResultAdapter(
     private val toggleFavourite: (Item) -> Unit,

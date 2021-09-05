@@ -1,4 +1,4 @@
-package io.afdon.search.ui.binding
+package io.afdon.search.binding
 
 import android.widget.ImageButton
 import android.widget.ImageView

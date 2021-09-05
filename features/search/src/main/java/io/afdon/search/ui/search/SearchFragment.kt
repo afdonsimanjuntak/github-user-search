@@ -36,8 +36,8 @@ class SearchFragment @Inject constructor(
         initAdapter()
         setBinding(view)
         observeViewModel()
-        viewModel.updateItems()
         setScrollListener()
+        viewModel.updateItems()
     }
 
     private fun initToolbar() {

@@ -80,12 +80,11 @@ class DetailViewModel @AssistedInject constructor(
             _user.value?.let { user_ ->
                 toggleUserJob.cancelIfActive()
                 toggleUserJob = viewModelScope.launch {
-                    val result = if (favourite) {
+                    if (favourite) {
                         deleteFavouriteUseCase.delete(user_)
                     } else {
                         addFavouriteUseCase.add(user_)
-                    }
-                    result.collect {
+                    }.collect {
                         when (it) {
                             is RequestResult.Loading -> {
                                 _progressVisibility.value =
