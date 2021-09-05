@@ -1,7 +1,10 @@
 package io.afdon.search.repo
 
+import android.util.Log
+import com.google.gson.Gson
 import io.afdon.core.logger.Logger
 import io.afdon.data.source.api.GithubApi
+import io.afdon.data.source.api.response.ErrorResponse
 import io.afdon.data.source.room.dao.UserDao
 import io.afdon.search.mapper.GetUserToDomainUserMapper
 import io.afdon.search.mapper.SearchItemToUserMapper
@@ -19,7 +22,8 @@ class SearchRepositoryImpl @Inject constructor(
     private val searchItemToUserMapper: SearchItemToUserMapper,
     private val userToRoomUserMapper: UserToRoomUserMapper,
     private val getUserToDomainUserMapper: GetUserToDomainUserMapper,
-    private val logger: Logger
+    private val logger: Logger,
+    private val gson: Gson
 ) : SearchRepository {
 
     override fun searchUsers(q: String, page: Int, perPage: Int): Flow<RequestResult<List<User>>> =
@@ -33,7 +37,11 @@ class SearchRepositoryImpl @Inject constructor(
                     }.orEmpty()
                     emit(RequestResult.Success(list, response.body()?.incompleteResults ?: true))
                 } else {
-                    emit(RequestResult.Error("Request failed!"))
+                    gson.fromJson(
+                        response.errorBody()?.string(), ErrorResponse::class.java
+                    )?.message?.let {
+                        emit(RequestResult.Error(it))
+                    } ?: emit(RequestResult.Error("Invalid response"))
                 }
             } catch (e: Exception) {
                 logger.log(e)

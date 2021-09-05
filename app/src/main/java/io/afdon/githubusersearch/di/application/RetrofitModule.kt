@@ -1,6 +1,7 @@
 package io.afdon.githubusersearch.di.application
 
 import android.content.Context
+import com.google.gson.Gson
 import dagger.Module
 import dagger.Provides
 import io.afdon.githubusersearch.BuildConfig
@@ -54,4 +55,8 @@ object RetrofitModule {
     @Singleton
     @Provides
     fun provideGsonConverter(): Converter.Factory = GsonConverterFactory.create()
+
+    @Singleton
+    @Provides
+    fun provideGson() : Gson = Gson()
 }

@@ -1,6 +1,5 @@
 package io.afdon.search.ui.search
 
-import android.util.Log
 import android.view.View
 import androidx.lifecycle.*
 import dagger.assisted.Assisted
