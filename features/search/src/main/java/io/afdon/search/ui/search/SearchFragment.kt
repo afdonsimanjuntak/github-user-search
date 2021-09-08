@@ -65,9 +65,11 @@ class SearchFragment @Inject constructor(
 
     private fun observeViewModel() {
         viewModel.searchResultItems.observe(viewLifecycleOwner) {
-            val isNewSearch = it.isNewSearch
+            val isNewSearch = it.isNewSearch()
+            Log.d("---------------------", "observeViewModel: isNewSearch $isNewSearch")
             adapter.submitList(it.getItems()) {
                 if (isNewSearch) {
+                    Log.d("---------------------", "observeViewModel: isNewSearch2 ${it.isNewSearch()}")
                     binding?.rvSearchResult?.scrollToPosition(0)
                 }
             }
@@ -96,10 +98,6 @@ class SearchFragment @Inject constructor(
                             super.onScrolled(recyclerView, dx, dy)
                             if (shouldLoadNext(dy, rvAdapter.itemCount, llm.findLastVisibleItemPosition())
                             ) {
-                                Log.d(
-                                    "---------------------",
-                                    "onScrolled: threshold ${rvAdapter.itemCount - SearchViewModel.THRESHOLD_LOAD_NEXT}"
-                                )
                                 viewModel.onScrollLoadMore()
                             }
                         }

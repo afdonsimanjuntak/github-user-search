@@ -1,6 +1,5 @@
 package io.afdon.search.ui.search
 
-import android.util.Log
 import android.view.View
 import androidx.lifecycle.*
 import dagger.assisted.Assisted
@@ -122,7 +121,7 @@ class SearchViewModel @AssistedInject constructor(
                     if (page == FIRST_PAGE) pages.clear()
                     val newItems = result.data.map { SearchResultAdapter.Item(it, false) }
                     pages[page] = newItems
-                    updateItems()
+                    updateItems(currentPage == FIRST_PAGE)
                 }
             }
         }
@@ -152,7 +151,7 @@ class SearchViewModel @AssistedInject constructor(
         }
     }
 
-    fun updateItems() {
+    fun updateItems(isNewSearch: Boolean = false) {
         getFavouriteUserIdsJob.cancelIfActive()
         getFavouriteUserIdsJob = viewModelScope.launch {
             getFavouriteUserIdsUseCase.getFavouriteUserIds().collect {
@@ -169,7 +168,7 @@ class SearchViewModel @AssistedInject constructor(
                             populateItems().map { item ->
                                 SearchResultAdapter.Item(item.user, it.data.contains(item.user?.id))
                             },
-                            currentPage == 1
+                            isNewSearch
                         )
                     }
                 }
@@ -182,9 +181,7 @@ class SearchViewModel @AssistedInject constructor(
         for (i in FIRST_PAGE..currentPage) {
             pages[i]?.let { newItems.addAll(it) }
         }
-        Log.d("---------------------", "populateItems: size: ${newItems.size}")
         hasMore = newItems.size < totalCount
-        Log.d("---------------------", "populateItems: hasMore: $hasMore")
         return newItems
     }
 

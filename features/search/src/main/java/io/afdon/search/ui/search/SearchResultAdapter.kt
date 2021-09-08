@@ -103,15 +103,17 @@ class SearchResultAdapter(
 
     class SearchContent(
         private val items: List<Item>,
-        isNewSearch : Boolean = false
+        _isNewSearch : Boolean = false
     ) {
 
-        var isNewSearch = isNewSearch
-            private set
+        private var isNewSearch = _isNewSearch
 
         fun getItems() : List<Item>{
             this.isNewSearch = false
+            Log.d("---------------------", "getItems: set ${hashCode()} isNewSearch false")
             return items
         }
+
+        fun isNewSearch() : Boolean = isNewSearch
     }
 }
