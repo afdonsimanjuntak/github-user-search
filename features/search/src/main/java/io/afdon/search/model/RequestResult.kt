@@ -10,7 +10,7 @@ sealed class RequestResult<T> {
 
     data class Success<S>(
         val data: S,
-        val hasMore: Boolean = true
+        val totalCount: Int = 0
     ) : RequestResult<S>()
 
     data class Error<S>(

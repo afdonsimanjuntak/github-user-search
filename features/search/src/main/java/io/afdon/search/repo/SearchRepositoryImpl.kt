@@ -35,7 +35,7 @@ class SearchRepositoryImpl @Inject constructor(
                     val list = response.body()?.items?.mapNotNull {
                         searchItemToUserMapper.map(it)
                     }.orEmpty()
-                    emit(RequestResult.Success(list, response.body()?.incompleteResults ?: true))
+                    emit(RequestResult.Success(list, response.body()?.totalCount ?: 0))
                 } else {
                     gson.fromJson(
                         response.errorBody()?.string(), ErrorResponse::class.java

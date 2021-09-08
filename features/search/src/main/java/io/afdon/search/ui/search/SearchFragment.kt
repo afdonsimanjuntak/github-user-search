@@ -1,6 +1,7 @@
 package io.afdon.search.ui.search
 
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
@@ -64,8 +65,9 @@ class SearchFragment @Inject constructor(
 
     private fun observeViewModel() {
         viewModel.searchResultItems.observe(viewLifecycleOwner) {
-            adapter.submitList(it) {
-                if (it.size <= SearchViewModel.PER_PAGE) {
+            val isNewSearch = it.isNewSearch
+            adapter.submitList(it.getItems()) {
+                if (isNewSearch) {
                     binding?.rvSearchResult?.scrollToPosition(0)
                 }
             }
@@ -92,8 +94,12 @@ class SearchFragment @Inject constructor(
                     rv.addOnScrollListener(object : RecyclerView.OnScrollListener() {
                         override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                             super.onScrolled(recyclerView, dx, dy)
-                            val threshold = rvAdapter.itemCount - 10
-                            if (llm.findLastVisibleItemPosition() == threshold) {
+                            if (shouldLoadNext(dy, rvAdapter.itemCount, llm.findLastVisibleItemPosition())
+                            ) {
+                                Log.d(
+                                    "---------------------",
+                                    "onScrolled: threshold ${rvAdapter.itemCount - SearchViewModel.THRESHOLD_LOAD_NEXT}"
+                                )
                                 viewModel.onScrollLoadMore()
                             }
                         }
@@ -101,6 +107,11 @@ class SearchFragment @Inject constructor(
                 }
             }
         }
+    }
+
+    private fun shouldLoadNext(dy: Int, itemCount: Int, lastVisiblePosition: Int) : Boolean {
+        return dy > 0 && itemCount % SearchViewModel.PER_PAGE == 0 &&
+                lastVisiblePosition == itemCount - SearchViewModel.THRESHOLD_LOAD_NEXT
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {

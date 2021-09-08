@@ -35,12 +35,13 @@ class SearchViewModel @AssistedInject constructor(
         private const val FIRST_PAGE = 1
         private const val SEARCH_DELAY = 500L
         const val PER_PAGE = 30
+        const val THRESHOLD_LOAD_NEXT = 10
     }
 
     val queryLiveData = savedStateHandle.getLiveData<String>("query")
 
-    private val _searchResultItems = MutableLiveData<List<SearchResultAdapter.Item>>(arrayListOf())
-    val searchResultItems: LiveData<List<SearchResultAdapter.Item>> = _searchResultItems
+    private val _searchResultItems = MutableLiveData<SearchResultAdapter.SearchContent>()
+    val searchResultItems: LiveData<SearchResultAdapter.SearchContent> = _searchResultItems
 
     private val _progressVisibility = MutableLiveData(View.GONE)
     val progressVisibility: LiveData<Int> = _progressVisibility
@@ -54,6 +55,8 @@ class SearchViewModel @AssistedInject constructor(
     private val pages = mutableMapOf<Int, List<SearchResultAdapter.Item>>()
     private var currentPage = 0
     private var lastTriedPage = 0
+    private var totalCount = 0
+    private var hasMore = true
 
     private var searchUsersJob: Job? = null
     private var toggleFavouriteJob: Job? = null
@@ -93,6 +96,7 @@ class SearchViewModel @AssistedInject constructor(
     }
 
     private fun loadNextPage(page: Int) {
+        if (!hasMore) return
         searchUsersJob.cancelIfActive()
         searchUsersJob = viewModelScope.launch {
             queryLiveData.value?.let { fetchUsers(it, page) }
@@ -113,6 +117,7 @@ class SearchViewModel @AssistedInject constructor(
                     _errorEvent.value = Event(result.message)
                 }
                 is RequestResult.Success -> {
+                    totalCount = result.totalCount
                     currentPage = page
                     if (page == FIRST_PAGE) pages.clear()
                     val newItems = result.data.map { SearchResultAdapter.Item(it, false) }
@@ -160,10 +165,12 @@ class SearchViewModel @AssistedInject constructor(
                         _errorEvent.value = Event(it.message)
                     }
                     is RequestResult.Success -> {
-                        if (pages.size == 1) _searchResultItems.value = arrayListOf()
-                        _searchResultItems.value = populateItems().map { item ->
-                            SearchResultAdapter.Item(item.user, it.data.contains(item.user?.id))
-                        }
+                        _searchResultItems.value = SearchResultAdapter.SearchContent(
+                            populateItems().map { item ->
+                                SearchResultAdapter.Item(item.user, it.data.contains(item.user?.id))
+                            },
+                            currentPage == 1
+                        )
                     }
                 }
             }
@@ -175,21 +182,23 @@ class SearchViewModel @AssistedInject constructor(
         for (i in FIRST_PAGE..currentPage) {
             pages[i]?.let { newItems.addAll(it) }
         }
-        Log.d("---------------------", "populateItems: size ${newItems.size}")
+        Log.d("---------------------", "populateItems: size: ${newItems.size}")
+        hasMore = newItems.size < totalCount
+        Log.d("---------------------", "populateItems: hasMore: $hasMore")
         return newItems
     }
 
     private fun addLoadingFooter() {
-        if (searchResultItems.value.isNullOrEmpty()) return
-        _searchResultItems.value = populateItems().apply {
+        if (searchResultItems.value?.getItems().isNullOrEmpty()) return
+        _searchResultItems.value = SearchResultAdapter.SearchContent(populateItems().apply {
             add(SearchResultAdapter.Item(type = R.layout.item_recyclerview_loading))
-        }
+        })
     }
 
     private fun addLoadMoreFooter() {
-        if (searchResultItems.value.isNullOrEmpty()) return
-        _searchResultItems.value = populateItems().apply {
+        if (searchResultItems.value?.getItems().isNullOrEmpty()) return
+        _searchResultItems.value = SearchResultAdapter.SearchContent(populateItems().apply {
             add(SearchResultAdapter.Item(type = R.layout.item_recyclerview_load_more))
-        }
+        })
     }
 }

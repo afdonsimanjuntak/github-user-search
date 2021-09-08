@@ -1,5 +1,6 @@
 package io.afdon.search.ui.search
 
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.AsyncListDiffer
@@ -74,6 +75,7 @@ class SearchResultAdapter(
     override fun getItemCount(): Int = listDiffer.currentList.size
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        Log.d("---------------------", "onBindViewHolder: index: $position")
         when (holder) {
             is Holder -> holder.bind(listDiffer.currentList[position])
             is LoadMoreViewHolder -> holder.bind()
@@ -98,4 +100,18 @@ class SearchResultAdapter(
         var isFavourite: Boolean = false,
         val type: Int = R.layout.item_search_result
     )
+
+    class SearchContent(
+        private val items: List<Item>,
+        isNewSearch : Boolean = false
+    ) {
+
+        var isNewSearch = isNewSearch
+            private set
+
+        fun getItems() : List<Item>{
+            this.isNewSearch = false
+            return items
+        }
+    }
 }
