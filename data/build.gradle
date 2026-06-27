@@ -5,11 +5,12 @@ plugins {
 }
 
 android {
-    compileSdk 30
+    namespace 'io.afdon.data'
+    compileSdk 34
 
     defaultConfig {
         minSdk 21
-        targetSdk 30
+        targetSdk 34
         versionCode 1
         versionName "1.0"
 
@@ -47,8 +48,8 @@ dependencies {
     implementation 'com.squareup.okhttp3:logging-interceptor:4.9.1'
 
     // Room
-    implementation "androidx.room:room-ktx:2.3.0"
-    kapt "androidx.room:room-compiler:2.3.0"
+    implementation "androidx.room:room-ktx:2.6.1"
+    kapt "androidx.room:room-compiler:2.6.1"
 
     testImplementation 'junit:junit:4.13.2'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'
