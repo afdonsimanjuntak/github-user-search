@@ -13,3 +13,5 @@ Github User Search - Android App
 - Manual paging (paging library does not compatible with clean architecture)
 - Retrofit
 - Data Binding
+
+For Jetpack Compose version, checkout branch compose.
