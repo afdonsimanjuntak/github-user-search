@@ -1,43 +1,58 @@
 package io.afdon.search.ui.search
 
 import android.os.Bundle
-import android.util.Log
 import android.view.*
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import io.afdon.core.extension.toast
 import io.afdon.core.viewmodel.SavedStateViewModelFactory
 import io.afdon.search.R
-import io.afdon.search.databinding.FragmentSearchBinding
 import io.afdon.search.navigation.SearchNavigation
 import javax.inject.Inject
 
 class SearchFragment @Inject constructor(
     private val factory: SavedStateViewModelFactory,
     private val searchNavigation: SearchNavigation
-) : Fragment(R.layout.fragment_search) {
+) : Fragment() {
 
     private val viewModel by viewModels<SearchViewModel> {
         factory.create(this@SearchFragment, arguments)
     }
-    private lateinit var adapter: SearchResultAdapter
-    private var binding: FragmentSearchBinding? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
     }
 
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                MaterialTheme {
+                    SearchScreen(
+                        viewModel = viewModel,
+                        onItemClick = { searchNavigation.openDetail(it) },
+                        onFavouriteClick = { viewModel.toggleFavorite(it) },
+                        onRefresh = { viewModel.newSearch() },
+                        onScrollLoadMore = { viewModel.onScrollLoadMore() }
+                    )
+                }
+            }
+        }
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initToolbar()
-        initAdapter()
-        setBinding(view)
         observeViewModel()
-        setScrollListener()
         viewModel.updateItems()
     }
 
@@ -48,68 +63,10 @@ class SearchFragment @Inject constructor(
         }
     }
 
-    private fun initAdapter() {
-        adapter = SearchResultAdapter(
-            viewModel::toggleFavorite, searchNavigation::openDetail, viewModel::onButtonLoadMore
-        )
-    }
-
-    private fun setBinding(v: View) {
-        binding = FragmentSearchBinding.bind(v).apply {
-            lifecycleOwner = viewLifecycleOwner
-            vm = viewModel
-            swipeRefreshLayout.setOnRefreshListener { viewModel.newSearch() }
-            rvSearchResult.adapter = adapter
-        }
-    }
-
     private fun observeViewModel() {
-        viewModel.searchResultItems.observe(viewLifecycleOwner) {
-            val isNewSearch = it.isNewSearch()
-            Log.d("---------------------", "observeViewModel: isNewSearch $isNewSearch")
-            adapter.submitList(it.getItems()) {
-                if (isNewSearch) {
-                    Log.d("---------------------", "observeViewModel: isNewSearch2 ${it.isNewSearch()}")
-                    binding?.rvSearchResult?.scrollToPosition(0)
-                }
-            }
-        }
-        viewModel.isSwipeRefreshing.observe(viewLifecycleOwner) {
-            with(binding?.swipeRefreshLayout) {
-                if (it) {
-                    if (this?.isRefreshing == false) isRefreshing = true
-                } else {
-                    this?.isRefreshing = false
-                }
-            }
-        }
         viewModel.errorEvent.observe(viewLifecycleOwner) {
             it.getContentIfNotHandled()?.let { message -> toast(message) }
         }
-    }
-
-    private fun setScrollListener() {
-        binding?.rvSearchResult?.let { rv ->
-            val llm = rv.layoutManager
-            if (llm is LinearLayoutManager) {
-                rv.adapter?.let { rvAdapter ->
-                    rv.addOnScrollListener(object : RecyclerView.OnScrollListener() {
-                        override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                            super.onScrolled(recyclerView, dx, dy)
-                            if (shouldLoadNext(dy, rvAdapter.itemCount, llm.findLastVisibleItemPosition())
-                            ) {
-                                viewModel.onScrollLoadMore()
-                            }
-                        }
-                    })
-                }
-            }
-        }
-    }
-
-    private fun shouldLoadNext(dy: Int, itemCount: Int, lastVisiblePosition: Int) : Boolean {
-        return dy > 0 && itemCount % SearchViewModel.PER_PAGE == 0 &&
-                lastVisiblePosition == itemCount - SearchViewModel.THRESHOLD_LOAD_NEXT
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -125,10 +82,5 @@ class SearchFragment @Inject constructor(
             }
             else -> super.onOptionsItemSelected(item)
         }
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        binding = null
     }
 }

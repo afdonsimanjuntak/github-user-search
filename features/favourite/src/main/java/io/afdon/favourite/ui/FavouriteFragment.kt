@@ -1,39 +1,56 @@
 package io.afdon.favourite.ui
 
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.MenuItem
 import android.view.View
+import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import io.afdon.core.extension.toast
 import io.afdon.core.viewmodel.SavedStateViewModelFactory
-import io.afdon.favourite.R
-import io.afdon.favourite.databinding.FragmentFavouriteBinding
 import io.afdon.favourite.navigation.FavouriteNavigation
 import javax.inject.Inject
 
 class FavouriteFragment @Inject constructor(
     private val factory: SavedStateViewModelFactory,
     private val favouriteNavigation: FavouriteNavigation
-) : Fragment(R.layout.fragment_favourite) {
+) : Fragment() {
 
     private val viewModel by viewModels<FavouriteViewModel> {
-        factory.create(this@FavouriteFragment)
+        factory.create(this@FavouriteFragment, arguments)
     }
-    private var binding: FragmentFavouriteBinding? = null
-    private lateinit var adapter: FavouriteAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setHasOptionsMenu(true)
     }
 
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                MaterialTheme {
+                    FavouriteScreen(
+                        viewModel = viewModel,
+                        onItemClick = { favouriteNavigation.openDetail(it) }
+                    )
+                }
+            }
+        }
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initToolbar()
-        initAdapter()
-        setBinding(view)
         observeViewModel()
         viewModel.getFavourites()
     }
@@ -45,24 +62,7 @@ class FavouriteFragment @Inject constructor(
         }
     }
 
-    private fun initAdapter() {
-        adapter = FavouriteAdapter(
-            viewModel::deleteFavourite, favouriteNavigation::openDetail
-        )
-    }
-
-    private fun setBinding(v: View) {
-        binding = FragmentFavouriteBinding.bind(v).apply {
-            lifecycleOwner = viewLifecycleOwner
-            vm = viewModel
-            rvFavouriteUsers.adapter = adapter
-        }
-    }
-
     private fun observeViewModel() {
-        viewModel.favouriteUsers.observe(viewLifecycleOwner) {
-            adapter.submitList(it)
-        }
         viewModel.errorEvent.observe(viewLifecycleOwner) {
             it.getContentIfNotHandled()?.let { message -> toast(message) }
         }
@@ -76,10 +76,5 @@ class FavouriteFragment @Inject constructor(
             }
             else -> super.onOptionsItemSelected(item)
         }
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        binding = null
     }
 }
